@@ -1,0 +1,356 @@
+ЗАГОЛОВОЧНЫЙ ФАЙЛ
+
+
+#pragma once
+#include <string>
+using namespace std;
+
+//структура для обработки больших чисел в виде строк
+struct BigChislo {
+    string value;
+};
+
+//создание числа в виде строки
+BigChislo createBigChislo(const string& num = "0");
+
+//проверка на корректность ввода пользователем
+bool isValid(const BigChislo& num, string& errorMessage);
+
+//сравнение двух чисел
+int Sravnenie(const BigChislo& num1, const BigChislo& num2);
+
+//сложение двух чисел
+BigChislo Summa(const BigChislo& num1, const BigChislo& num2);
+
+//вычитание двух чисел
+BigChislo Subtract(const BigChislo& num1, const BigChislo& num2);
+
+//умножение двух чисел
+BigChislo Multiply(const BigChislo& num1, const BigChislo& num2);
+
+//деление числа на 2
+BigChislo Split(const BigChislo& num);
+
+//извлечение квадратного корня
+string Koren(const BigChislo& num);
+
+//функция для ожидания ввода от пользователя
+void waitForEnter();
+
+
+
+
+
+
+
+
+
+
+
+
+МОДУЛЬНЫЙ ФАЙЛ
+
+#include "zagolovok.h"
+#include <iostream>
+
+using namespace std;
+
+//преобразование в строку
+BigChislo createBigChislo(const string& num) {
+    BigChislo result;
+    result.value = num;
+    return result;
+}
+
+//проверка на корректность ввода пользователем
+bool isValid(const BigChislo& num, string& errorMessage) {
+
+    //если строка пуста
+    if (num.value.empty()) {
+        errorMessage = "Ошибка: Введена пустая строка! Перезапустите программу!";
+        return false;
+    }
+
+    //проверка на отрицательное число,если первый элемент -
+    if (num.value[0] == '-') {
+        errorMessage = "Ошибка: Введено отрицательное число. Корень из отрицательного числа не существует!Перезапустите программу!";
+        return false;
+    }
+
+    //проверка на наличие букв/слов
+    for (size_t i = 0; i < num.value.length(); i++) {
+        if (num.value[i] < '0' || num.value[i] > '9') {
+            errorMessage = "Ошибка: Введены недопустимые символы. Пожалуйста, введите только цифры!Перезапустите программу!";
+            return false;
+        }
+    }
+
+    //проверка на длину числа
+    if (num.value.length() < 40) {
+        errorMessage = "Ошибка: Число должно содержать более 40 цифр.Перезапустите программу!";
+        return false;
+    }
+
+    //если все проверки пройдены
+    errorMessage = "";
+    return true;
+}
+
+
+
+
+
+//фукнкции для работы алгоритма БИНАРНОГО ПОИСКА
+
+
+
+//сравнение двух чисел, для того чтобы понять является ли число корнем начального
+int Sravnenie(const BigChislo& num1, const BigChislo& num2) {
+    if (num1.value.length() > num2.value.length())
+        return 1; //первое число длиннее
+
+    if (num1.value.length() < num2.value.length())
+        return -1; //второе число длиннее
+
+    //постепенно сравниваем цифры
+    for (size_t i = 0; i < num1.value.length(); i++) {
+        if (num1.value[i] > num2.value[i])
+            return 1; //если 1 число больше
+
+        if (num1.value[i] < num2.value[i])
+            return -1; //если 2 число больше
+    }
+    return 0; //числа равны
+}
+
+//сложение двух границ,для того чтобы определить среднее значение mid
+BigChislo Summa(const BigChislo& num1, const BigChislo& num2) {
+    string result;
+    int perenos = 0; //переменная для переноса 
+    int i = num1.value.length() - 1; //индекс последнего символа первого числа
+    int j = num2.value.length() - 1; //индекс последнего символа второго числа
+
+    //пока есть цифры для сложения или перенос
+    while (i >= 0 || j >= 0 || perenos) {
+        int chislo1 = 0;
+        int chislo2 = 0;
+
+        //если есть цифра в первом числе, берем её,потом работа со вторым числом
+        if (i >= 0) {
+            chislo1 = num1.value[i] - '0'; //преобразуем символ в цифру
+            i--;
+        }
+
+        if (j >= 0) {
+            chislo2 = num2.value[j] - '0';
+            j--;
+        }
+        int sum = chislo1 + chislo2 + perenos;
+
+        //перенос для следующего разряда,добавляем в результат
+        perenos = sum / 10;
+        result = char((sum % 10) + '0') + result;
+    }
+    return createBigChislo(result);
+}
+
+//вычитание двух чисел,обновляем границы строки
+BigChislo Subtract(const BigChislo& num1, const BigChislo& num2) {
+    string result;
+    int borrow = 0;
+    int i = num1.value.length() - 1; //индекс последнего символа первого числа
+    int j = num2.value.length() - 1; //индекс последнего символа второго числа
+
+    //пока есть цифры для вычитания
+    while (i >= 0) {
+        int chislo1 = num1.value[i--] - '0' - borrow; //цифра первого числа с учетом заимствования
+        int chislo2 = (j >= 0) ? num2.value[j--] - '0' : 0; //цифра второго числа
+        if (chislo1 < chislo2) { //если нужно брать из предыдущего разряда
+            chislo1 += 10;
+            borrow = 1;
+        }
+        else {
+            borrow = 0;
+        }
+        result = char((chislo1 - chislo2) + '0') + result;
+    }
+
+    //удаляем  нули
+    size_t pos = 0;
+    while (pos < result.length() && result[pos] == '0') {
+        pos++;
+    }
+    if (pos == result.length()) {
+        return createBigChislo("0"); //если  ноль
+    }
+    return createBigChislo(result.substr(pos));
+}
+
+//умножение двух чисел для того чтобы определить квадрат корня,является ли число
+BigChislo Multiply(const BigChislo& num1, const BigChislo& num2) {
+    if (num1.value == "0" || num2.value == "0")
+        return createBigChislo("0"); //если одно из чисел  ноль
+
+    int len1 = num1.value.length(); //длина первого числа
+    int len2 = num2.value.length(); //длина второго числа
+    string result(len1 + len2, '0'); //умножаем
+
+    //умножаем каждую цифру первого числа на каждую цифру второго числа
+    for (int i = len1 - 1; i >= 0; i--) {
+        for (int j = len2 - 1; j >= 0; j--) {
+            int product = (num1.value[i] - '0') * (num2.value[j] - '0') + (result[i + j + 1] - '0');
+            result[i + j + 1] = (product % 10) + '0'; //записываем остаток
+            result[i + j] += product / 10; //добавляем перенос
+        }
+    }
+
+    //удаляем ведущие нули
+    size_t pos = 0;
+    while (pos < result.length() && result[pos] == '0') {
+        pos++;
+    }
+    if (pos == result.length()) {
+        return createBigChislo("0"); //если результат  ноль
+    }
+    return createBigChislo(result.substr(pos));
+}
+
+//деление числа на 2
+BigChislo Split(const BigChislo& num) {
+    string result;
+    int ostatok = 0; //остаток
+
+    //делим каждую цифру на 2
+    for (size_t i = 0; i < num.value.length(); i++) {
+        int digit = num.value[i] - '0';
+        int value = ostatok * 10 + digit;
+        result += char((value / 2) + '0');
+        ostatok = value % 2;
+    }
+
+    //удаляем ведущие нули
+    size_t pos = 0;
+    while (pos < result.length() && result[pos] == '0') {
+        pos++;
+    }
+    if (pos == result.length()) {
+        return createBigChislo("0"); //если результат  ноль
+    }
+    return createBigChislo(result.substr(pos)); //возвращаем результат
+}
+
+//извлечение квадратного корня
+string Koren(const BigChislo& num) {
+    BigChislo left = createBigChislo("0"); //левая граница
+    BigChislo right = num; //правая граница
+    string result;
+
+    //находим целую часть квадратного корня
+    while (Sravnenie(left, right) <= 0) {
+        BigChislo mid = Split(Summa(left, right)); //среднее значение
+        BigChislo midSqrt = Multiply(mid, mid); //возводим корень в квадрат 
+
+        int cmp = Sravnenie(midSqrt, num); //сравниваем квадрат с исходным числом 
+        if (cmp == 0) {
+            result = mid.value;
+            break;
+        }
+        else if (cmp < 0) {
+            left = Summa(mid, createBigChislo("1")); //если квадрат меньше увеличиваем левую границу
+        }
+        else {
+            right = Subtract(mid, createBigChislo("1")); //если квадрат больше уменьшаем правую границу
+        }
+    }
+
+    if (result.empty()) {
+        result = Subtract(left, createBigChislo("1")).value;
+    }
+
+    //работа с дробной частью,обозначим точкой
+    result += ".";
+
+    //находим дробную часть (2 знака после запятой)
+    BigChislo ostatok = Subtract(num, Multiply(createBigChislo(result.substr(0, result.find('.'))), createBigChislo(result.substr(0, result.find('.')))));
+    ostatok = Multiply(ostatok, createBigChislo("100")); //умножаем остаток на 100 
+
+    BigChislo fraction = Split(ostatok); //приблизительное значение дробной части 
+    string fractionStr = fraction.value;
+
+    //добавляем дробную часть к результату
+    if (fractionStr.length() < 2) {
+        fractionStr = string(2 - fractionStr.length(), '0') + fractionStr; //дополняем нулями
+    }
+    result += fractionStr.substr(0, 2); //берем только 2 знака после запятой
+
+    return result;
+}
+
+//функция для ожидания ввода
+void waitForEnter() {
+    cout << "Нажмите Enter для выхода...";
+    string input;
+    getline(cin, input);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+МЕЙН ФАЙЛ
+
+
+
+
+
+#include "zagolovok.h"
+#include <iostream>
+
+using namespace std;
+
+int main() {
+    setlocale(LC_ALL, "RU");
+    cout << "Введите число для извлечения квадратного корня (n > 40):" << endl;
+    string numStr;
+    getline(cin, numStr); //используем getline для ввода числа
+
+    BigChislo num = createBigChislo(numStr);
+
+    string errorMessage;
+    if (!isValid(num, errorMessage)) {
+        cout << errorMessage << endl;
+        waitForEnter();
+        return 1;
+    }
+
+    string sqrtResult = Koren(num); //сама функция корня,бинарный поиск
+    cout << "Квадратный корень из числа " << num.value << " равен: " << sqrtResult << endl;
+    waitForEnter();
+    return 0;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
